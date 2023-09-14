@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Annotated
 import models
-from database import engine, SessionLocal
+from db import engine, SessionLocal
 from sqlalchemy.orm import Session
 
 
@@ -30,17 +30,25 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @app.get("/plants/{plant_id}")
 async def read_plant(plant_id: int, db: db_dependency):
-    result = db.query(models.Plants).filter(models.Plants.id == plant_id).first()
-    if not result:
+    if (
+        result := db.query(models.Plants)
+        .filter(models.Plants.id == plant_id)
+        .first()
+    ):
+        return result
+    else:
         raise HTTPException(status_code=404, detail='Questions is not found')
-    return result
 
 @app.get("/details/(plant_id)")
 async def read_detail(plant_id:int, db: db_dependency):
-    result = db.query(models.Details).filter(models.Details.plant_id == plant_id).first()
-    if not result:
+    if (
+        result := db.query(models.Details)
+        .filter(models.Details.plant_id == plant_id)
+        .first()
+    ):
+        return result
+    else:
         raise HTTPException(status_code=404, detail='Questions is not found')
-    return result
 
 @app.post("/plants/")
 async def create_plants(plant: PlantBase, db: db_dependency):
