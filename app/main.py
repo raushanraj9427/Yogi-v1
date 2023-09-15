@@ -27,6 +27,12 @@ class PlantBase(BaseModel):
     
     class config:
         orm_mode = True
+        
+class Plant(BaseModel):
+    plant_text:str
+    
+    class config:
+        orm_mode =True
 
 
 
@@ -52,21 +58,22 @@ async def read_detail(plant_id:int, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail='Questions is not found')
 
-@app.post("/plants/")
-async def create_plant(plant_text:str, db: db_dependency):
-    db_plant = models.Plants(plant_text = plant_text)
+@app.post("/plants")
+async def create_plant(plant_text:Plant, db: Session = Depends(get_db)):
+    db_plant = Plants(**plant_text.dict())
     db.add(db_plant)
     db.commit()
     db.refresh(db_plant)
+    return plant_text
 
 
-@app.post("/plants_details/")
-async def create_plant_details(plant: PlantBase, db: db_dependency):
-    db_plant = models.Plants(plant_text = plant.plant_text)
+@app.post("/plants_details")
+async def create_plant_details(plant: PlantBase, db: Session = Depends(get_db)):
+    db_plant = Plants(**plant.dict())
     db.add(db_plant)
     db.commit()
     db.refresh(db_plant)
     for choice in plant.choices:
-        db_choice = models.Details(plant_family=choice.plant_family, plant_bio=choice.plant_bio, plant_descr=choice.plant_descr, plant_url= choice.plant_url, plant_id=db_plant.id)
+        db_choice = Details(plant_family=choice.plant_family, plant_bio=choice.plant_bio, plant_descr=choice.plant_descr, plant_url= choice.plant_url, plant_id=db_plant.id)
         db.add(db_choice)
     db.commit()

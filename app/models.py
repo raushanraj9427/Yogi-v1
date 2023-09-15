@@ -4,7 +4,7 @@ from .db import Base
 class Plants(Base):
     __tablename__ = 'plants'
 
-    id = Column(Integer, primary_key=True, index= True)
+    id = Column(Integer, primary_key=True, index= True,autoincrement=True)
     plant_text = Column(String, index=True)
 
 class Details(Base):
