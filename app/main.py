@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import List
-
+from random import randint
+import uuid
 from .models import Plants , Details
 from sqlalchemy.orm import Session
 from .db import  get_db
@@ -11,6 +13,8 @@ import os
 load_dotenv(".env")
 app = FastAPI()
 # app.add_middleware(DBSessionMiddleware, db_url = os.environment["DATABASE_URL"])
+
+IMAGEDIR = "images/"
 
 class DetailBase(BaseModel):
     plant_family: str
@@ -72,7 +76,7 @@ async def create_plant(plant_text:Plant, db: Session = Depends(get_db)):
 
 @app.post("/plants_details")
 async def create_plant_details(plant: PlantBase, db: Session = Depends(get_db)):
-    db_plant = Plants(**plant.dict())
+    db_plant = Plants(plant_text = plant.plant_text)
     db.add(db_plant)
     db.commit()
     db.refresh(db_plant)
@@ -80,3 +84,28 @@ async def create_plant_details(plant: PlantBase, db: Session = Depends(get_db)):
         db_choice = Details(plant_family=choice.plant_family, plant_bio=choice.plant_bio, plant_descr=choice.plant_descr, plant_url= choice.plant_url, plant_id=db_plant.id)
         db.add(db_choice)
     db.commit()
+
+
+# to upload and load image
+@app.post("/upload/")
+async def create_upload_file(file: UploadFile = File(...)):
+ 
+    file.filename = f"{uuid.uuid4()}.jpg"
+    contents = await file.read()
+ 
+    #save the file
+    with open(f"{IMAGEDIR}{file.filename}", "wb") as f:
+        f.write(contents)
+ 
+    return {"filename": file.filename}
+
+@app.get("/show/")
+async def read_random_file():
+ 
+    # get random file from the image directory
+    files = os.listdir(IMAGEDIR)
+    random_index = randint(0, len(files) - 1)
+ 
+    path = f"{IMAGEDIR}{files[random_index]}"
+     
+    return FileResponse(path)
