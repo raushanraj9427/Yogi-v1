@@ -15,7 +15,7 @@ Follow these steps to get the project up and running:
 1. Clone the repository to your local machine:
 
     ```bash
-    git clone https://github.com/harry-urek/Yogi-v1.git
+    git clone https://github.com/raushanraj9427/Yogi-v1.git
     ```
 2. Navigate to the project directory:
 
